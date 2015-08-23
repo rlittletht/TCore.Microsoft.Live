@@ -1,0 +1,24 @@
+[Global]
+CurrentProject=Source\Microsoft.Live.Desktop.vpj
+[ActiveConfig]
+Source\Microsoft.Live.Desktop.vpj=,Debug|AnyCPU
+UnitTests\Microsoft.Live.Desktop.UnitTests.vpj=,Debug|AnyCPU
+TCore.Live.Desktop\TCore.Live.Desktop.vpj=,Debug|AnyCPU
+[ProjectDates]
+Source\Microsoft.Live.Desktop.csproj=20141110053541149
+UnitTests\Microsoft.Live.Desktop.UnitTests.csproj=20141110053538760
+TCore.Live.Desktop\TCore.Live.Desktop.csproj=20141110051344107
+[State]
+SCREEN: 2560 1440 626 265 1225 668 0 0 M 0 0 0 0 2560 1149 0
+CWD: Source
+FILEHIST: 9
+..\..\..\..\tcrec\tcsvc\tcauth.cs
+..\..\..\..\tcrec\xl\SlReportWeb\obj\Release\Package\PackageTmp\App\Home\Home.js
+..\..\..\..\tcrec\xl\SlReportWeb\App\Home\Home.js
+..\..\..\..\sl\slweb\SmokeIt.aspx
+..\..\..\..\sl\slweb\SmokeIt.aspx.cs
+..\Microsoft.Live.Desktop\UnitTests\Microsoft.Live.Desktop.UnitTests.csproj
+UnitTests\Microsoft.Live.Desktop.UnitTests.csproj
+Source\Properties\AssemblyInfo.cs
+\\ix\netsetup\AppManifests\SLReportThtDev.xml
+TBCLASS: 0 0
