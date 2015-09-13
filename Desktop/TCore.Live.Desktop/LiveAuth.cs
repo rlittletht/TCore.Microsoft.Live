@@ -9,11 +9,12 @@ using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using Microsoft.Live;
 using Microsoft.Live.Operations;
+using TCore.Logging;
 
 namespace TCore.Live.Desktop
 {
-    public delegate void SessionChangedCallback();
-    public delegate void OnAuthComplete(bool fSuccess, string sError, LiveConnectSession lcs);
+    public delegate void SessionChangedCallback(CorrelationID crid);
+    public delegate void OnAuthComplete(bool fSuccess, string sError, CorrelationID crid, LiveConnectSession lcs);
 
     public class LiveUserInfo_Emails
     {
@@ -43,9 +44,10 @@ namespace TCore.Live.Desktop
 
     public class AuthResult
     {
-        public AuthResult(Uri resultUri)
+        public AuthResult(Uri resultUri, CorrelationID crid)
         {
             string[] queryParams = resultUri.Query.TrimStart('?').Split('&');
+            CorrelationIDFoo = crid;
             foreach (string param in queryParams)
                 {
                 string[] kvp = param.Split('=');
@@ -67,6 +69,7 @@ namespace TCore.Live.Desktop
         public string AuthorizeCode { get; private set; }
         public string ErrorCode { get; private set; }
         public string ErrorDescription { get; private set; }
+        public CorrelationID CorrelationIDFoo { get; set; }
     }
 
     public class LiveAuth : IRefreshTokenHandler
@@ -83,16 +86,15 @@ namespace TCore.Live.Desktop
         public void RegisterClientLog(LiveAuthClient.ClientLog cll)
         {
             m_cll = cll;
-            LogSz("LiveAuth(RegisterClientLog)");
-            if (liveAuthClient != null)
-                liveAuthClient.RegisterClientLog(m_cll);
+            LogSz(null, "LiveAuth(RegisterClientLog)");
+            liveAuthClient?.RegisterClientLog(m_cll);
         }
 
-        void LogSz(string s)
+        void LogSz(object crid, string s)
         {
-            if (m_cll != null)
-                m_cll(s);
+            m_cll?.Invoke(crid, s);
         }
+
         public void RegisterSessionChangedCallback(SessionChangedCallback scc)
         {
             m_scc = scc;
@@ -106,12 +108,12 @@ namespace TCore.Live.Desktop
             return true;
         }
 
-        public async Task<LiveUserInfo> CurrentUserAsync()
+        public async Task<LiveUserInfo> CurrentUserAsync(object crid)
         {
             if (!IsLoggedIn())
                 return null;
 
-            LiveOperationResult rslt = await liveConnectClient.GetAsync("me");
+            LiveOperationResult rslt = await liveConnectClient.GetAsync("me", crid);
             dynamic meData = rslt.Result;
 
             LiveUserInfo lui = new LiveUserInfo();
@@ -170,7 +172,7 @@ namespace TCore.Live.Desktop
             if (e.PropertyName == "Session")
                 {
                 if (m_scc != null)
-                    m_scc();
+                    m_scc(null); // sadly I don't have a correlation ID to propagate throught he propertychanged events...hopefully we don't see many of these!
                 }
         }
 
@@ -199,18 +201,18 @@ namespace TCore.Live.Desktop
             CleanupAuthForm();
         }
 
-        public void StartSignin(OnAuthComplete oac)
+        public void StartSignin(OnAuthComplete oac, CorrelationID crid)
         {
             if (m_lafSigninForm == null)
                 {
                 string sUrlStart = AuthClient.GetLoginUrl(m_plsAuthScopes.ToArray());
                 string endUrl = "https://login.live.com/oauth20_desktop.srf";
 
-                LogSz("StartSignin: InitializeAsync");
+                LogSz(crid, "StartSignin: InitializeAsync");
 
-                Task<LiveLoginResult> tllr = AuthClient.InitializeAsync(m_plsAuthScopes.ToArray());
+                Task<LiveLoginResult> tllr = AuthClient.InitializeAsync(m_plsAuthScopes.ToArray(), crid);
 
-                LogSz("Waiting...");
+                LogSz(crid, "Executed InitializeAsync; Waiting for result.");
                 try
                     {
                     tllr.Wait();
@@ -220,19 +222,20 @@ namespace TCore.Live.Desktop
                     }
                 if (tllr.Status == TaskStatus.RanToCompletion && tllr.Result.Status == LiveConnectSessionStatus.Connected)
                     {
-                    LogSz("Wait complete, RanToComplete, Connected");
+                    LogSz(crid, "Wait complete, RanToComplete, Connected");
                     liveConnectClient = new LiveConnectClient(tllr.Result.Session);
-                    oac(true, null, liveConnectClient.Session);
+                    oac(true, null, crid, liveConnectClient.Session);
                     return;
                     }
-                LogSz(String.Format("Wait complete, not connected: {0}, {1}", tllr.Status.ToString(),
+                LogSz(crid, String.Format("Wait complete, not connected: {0}, {1}", tllr.Status.ToString(),
                                     tllr.Result.Status.ToString()));
 
                 m_oac = oac;
                 m_lafSigninForm = new LiveAuthForm(
                     sUrlStart,
                     endUrl,
-                    this.OnAuthCompleted);
+                    this.OnAuthCompleted,
+                    crid);
                 m_lafSigninForm .FormClosed += OnAuthFormClosed;
                 m_lafSigninForm .ShowDialog();
                 }
@@ -240,7 +243,7 @@ namespace TCore.Live.Desktop
 
         private WebBrowser m_wbSignOut;
 
-        public void Signout()
+        public void Signout(CorrelationID crid)
         {
             if (m_wbSignOut == null)
                 {
@@ -257,7 +260,7 @@ namespace TCore.Live.Desktop
             AuthClient = null;
 
             if (m_scc != null)
-                m_scc();
+                m_scc(crid);
         }
 
         private void CleanupAuthForm()
@@ -275,29 +278,29 @@ namespace TCore.Live.Desktop
             switch (result.Status)
             {
                 case LiveConnectSessionStatus.Connected:
-                    LogSz(String.Format("OnRefreshTokenOperationCompleted: new live connection client"));
+                    LogSz(result?.CorrelationID, "OnRefreshTokenOperationCompleted: new live connection client");
                     liveConnectClient = new LiveConnectClient(result.Session);
                     if (m_scc != null)
-                        m_scc(); 
+                        m_scc((CorrelationID)result?.CorrelationID); 
                     break;
                 case LiveConnectSessionStatus.Unknown:
                     // Once we know the user is unknown, we clear the session and fail the operation. 
                     // On Windows Blue, the user may disconnect the Microsoft account. 
                     // We ensure we are not allowing app to continue to access user's data after the user disconnects the account.
-                    LogSz(String.Format("OnRefreshTokenOperationCompleted: Unknown"));
+                    LogSz(result?.CorrelationID, String.Format("OnRefreshTokenOperationCompleted: Unknown"));
                     liveConnectClient = null;
                     if (m_scc != null)
-                        m_scc(); 
+                        m_scc((CorrelationID)result?.CorrelationID); 
 //                    var error = new LiveConnectException(ApiOperation.ApiClientErrorCode, ResourceHelper.GetString("UserNotLoggedIn"));
                     return;
             }
 
         }
 
-        public bool Refresh()
+        public bool Refresh(object crid)
         {
             if (liveAuthClient != null)
-                return liveAuthClient.RefreshToken(OnRefreshTokenOperationCompleted);
+                return liveAuthClient.RefreshToken(OnRefreshTokenOperationCompleted, crid);
             
             return false;
         }
@@ -311,9 +314,9 @@ namespace TCore.Live.Desktop
                 {
                 try
                     {
-                    LiveConnectSession session = await this.AuthClient.ExchangeAuthCodeAsync(result.AuthorizeCode);
+                    LiveConnectSession session = await this.AuthClient.ExchangeAuthCodeAsync(result.AuthorizeCode, result?.CorrelationIDFoo);
                     liveConnectClient = new LiveConnectClient(session);
-                    LiveOperationResult meRs = await this.liveConnectClient.GetAsync("me");
+                    LiveOperationResult meRs = await this.liveConnectClient.GetAsync("me", result.CorrelationIDFoo);
                     dynamic meData = meRs.Result;
                     // this.meNameLabel.Text = meData.name;
 
@@ -323,23 +326,23 @@ namespace TCore.Live.Desktop
                 catch (LiveAuthException aex)
                     {
                     if (oac != null)
-                        oac(false, "Failed to retrieve access token. Error: " + aex.Message, null);
+                        oac(false, "Failed to retrieve access token. Error: " + aex.Message, result.CorrelationIDFoo, null);
                     return;
                     }
                 catch (LiveConnectException cex)
                     {
                     if (oac != null)
-                        oac(false, "Failed to retrieve the user's data. Error: " + cex.Message, null);
+                        oac(false, "Failed to retrieve the user's data. Error: " + cex.Message, result.CorrelationIDFoo, null);
                     return;
                     }
                 if (oac != null)
-                    oac(true, null, liveConnectClient.Session);
+                    oac(true, null, result.CorrelationIDFoo, liveConnectClient.Session);
                 }
             else
                 {
                 if (oac != null)
                     oac(false, string.Format("Error received. Error: {0} Detail: {1}", result.ErrorCode,
-                                             result.ErrorDescription), null);
+                                             result.ErrorDescription), result.CorrelationIDFoo, null);
                 }
         }
 

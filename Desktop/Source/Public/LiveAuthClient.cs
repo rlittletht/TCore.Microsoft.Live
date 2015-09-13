@@ -20,6 +20,8 @@
 //  THE SOFTWARE.
 // ------------------------------------------------------------------------------
 
+using TCore.Logging;
+
 namespace Microsoft.Live
 {
     using System;
@@ -39,14 +41,14 @@ namespace Microsoft.Live
         private LiveConnectSession session;
         private bool sessionChanged;
         private SynchronizationContextWrapper syncContext;
-        public delegate void ClientLog(string s);
+        public delegate void ClientLog(object crid, string s);
 
         private ClientLog m_cll;
 
         public void RegisterClientLog(LiveAuthClient.ClientLog cll)
         {
             m_cll = cll;
-            Log("LiveAuthClient(RegisterClientLog)");
+            Log(null, "LiveAuthClient(RegisterClientLog)");
 
             if (authClient != null)
                 authClient.RegisterClientLog(cll);
@@ -55,10 +57,17 @@ namespace Microsoft.Live
                 session.RegisterClientLog(cll);
         }
 
-        void Log(string s)
+        /* L O G */
+        /*----------------------------------------------------------------------------
+        	%%Function: Log
+        	%%Qualified: Microsoft.Live.LiveAuthClient.Log
+        	%%Contact: rlittle
+        	
+        ----------------------------------------------------------------------------*/
+        void Log(object crid, string s)
         {
             if (m_cll != null)
-                m_cll(s);
+                m_cll(crid, s);
         }
 
         /// <summary>
@@ -124,9 +133,9 @@ namespace Microsoft.Live
         /// provided by the app via the IRefreshTokenHandler instance.
         /// </summary>
         /// <returns>An async Task instance</returns>
-        public Task<LiveLoginResult> InitializeAsync()
+        public Task<LiveLoginResult> InitializeAsyncNoScopes(object crid)
         {
-            return this.InitializeAsync(new string[] { });
+            return this.InitializeAsync(new string[] { }, crid);
         }
 
         /// <summary>
@@ -136,11 +145,11 @@ namespace Microsoft.Live
         /// </summary>
         /// <param name="scopes">The list of offers that the application is requesting user to consent for.</param>
         /// <returns>An async Task instance.</returns>
-        public Task<LiveLoginResult> InitializeAsync(IEnumerable<string> scopes)
+        public Task<LiveLoginResult> InitializeAsync(IEnumerable<string> scopes, object crid)
         {
             LiveUtility.ValidateNotNullParameter(scopes, "scopes");
-            Log("InitializeAsync ENTER");
-            return this.authClient.InitializeAsync(scopes);
+            Log(crid, "InitializeAsync ENTER");
+            return this.authClient.InitializeAsync(scopes, crid);
         }
 
         /// <summary>
@@ -149,11 +158,11 @@ namespace Microsoft.Live
         /// <param name="AuthenticationCode">The authentication code the app received from Microsoft authorization
         /// server during the user authorization process.</param>
         /// <returns></returns>
-        public Task<LiveConnectSession> ExchangeAuthCodeAsync(string authenticationCode)
+        public Task<LiveConnectSession> ExchangeAuthCodeAsync(string authenticationCode, object crid)
         {
             LiveUtility.ValidateNotNullOrWhiteSpaceString(authenticationCode, "authenticationCode");
 
-            return this.authClient.ExchangeAuthCodeAsync(authenticationCode);
+            return this.authClient.ExchangeAuthCodeAsync(authenticationCode, crid);
         }
 
         
@@ -244,17 +253,17 @@ namespace Microsoft.Live
             }
         }
 
-        public bool RefreshToken(Action<LiveLoginResult> completionCallback)
+        public bool RefreshToken(Action<LiveLoginResult> completionCallback, object crid)
         {
             if (this.session == null)
-                Log("noValidSession == true: this.session == null");
+                Log(crid, "noValidSession == true: this.session == null");
 
             bool noValidSession = (this.session == null || !this.session.IsValid);
             if (noValidSession && this.authClient.CanRefreshToken)
                 {
-                Log("Calling TryRefreshToken");
+                Log(crid, "Calling TryRefreshToken");
 
-                this.authClient.TryRefreshToken(completionCallback);
+                this.authClient.TryRefreshToken(completionCallback, crid);
                 return true;
             }
 

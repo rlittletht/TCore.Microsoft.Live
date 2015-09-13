@@ -20,6 +20,8 @@
 //  THE SOFTWARE.
 // ------------------------------------------------------------------------------
 
+using TCore.Logging;
+
 namespace Microsoft.Live.Operations
 {
     using System;
@@ -65,17 +67,20 @@ namespace Microsoft.Live.Operations
             Uri url, 
             ApiMethod method, 
             string body, 
-            SynchronizationContextWrapper syncContext)
+            SynchronizationContextWrapper syncContext,
+            object crid)
             : base(url, body, syncContext)
         {
             this.Method = method;
             this.LiveClient = client;
+            CorrelationID = crid;
         }
 
         #endregion
 
         #region Properties
 
+        public object CorrelationID { get; set; }
         /// <summary>
         /// Gets the reference to the LiveConnectClient object.
         /// </summary>
@@ -185,7 +190,7 @@ namespace Microsoft.Live.Operations
         /// </summary>
         protected override void OnExecute()
         {
-            if (this.PrepareRequest())
+            if (this.PrepareRequest(this.CorrelationID))
             {
                 try
                 {
@@ -237,9 +242,9 @@ namespace Microsoft.Live.Operations
         /// <summary>
         /// Prepares the web request. Sets up the correct method, headers, etc.
         /// </summary>
-        protected bool PrepareRequest()
+        protected bool PrepareRequest(object crid)
         {
-            if (!this.RefreshTokenIfNeeded())
+            if (!this.RefreshTokenIfNeeded(crid))
             {
                 string httpMethod;
 
@@ -280,7 +285,7 @@ namespace Microsoft.Live.Operations
         /// <summary>
         /// Checks if the access token is still valid.  If not, refreshes the token.
         /// </summary>
-        protected bool RefreshTokenIfNeeded()
+        protected bool RefreshTokenIfNeeded(object crid)
         {
             bool needsRefresh = false;
             var session = this.LiveClient.Session;
@@ -289,7 +294,7 @@ namespace Microsoft.Live.Operations
             {
                 this.refreshed = true;
 
-                needsRefresh = authClient.RefreshToken(this.OnRefreshTokenOperationCompleted);
+                needsRefresh = authClient.RefreshToken(this.OnRefreshTokenOperationCompleted, crid);
             }
 
             return needsRefresh;

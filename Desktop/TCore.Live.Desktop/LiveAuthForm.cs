@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TCore.Logging;
 
 namespace TCore.Live.Desktop
 {
@@ -17,13 +18,15 @@ namespace TCore.Live.Desktop
     {
         private readonly string startUrl;
         private readonly string endUrl;
+        private CorrelationID crid;
         private readonly AuthCompletedCallback callback;
 
-        public LiveAuthForm(string startUrl, string endUrl, AuthCompletedCallback callback)
+        public LiveAuthForm(string startUrl, string endUrl, AuthCompletedCallback callback, CorrelationID crid)
         {
             this.startUrl = startUrl;
             this.endUrl = endUrl;
             this.callback = callback;
+            this.crid = crid;
             InitializeComponent();
         }
 
@@ -40,7 +43,7 @@ namespace TCore.Live.Desktop
                 {
                 if (this.callback != null)
                     {
-                    this.callback(new AuthResult(this.webBrowser.Url));
+                    this.callback(new AuthResult(this.webBrowser.Url, crid));
                     }
                 }
         }

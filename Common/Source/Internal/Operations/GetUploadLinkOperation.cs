@@ -49,8 +49,9 @@ namespace Microsoft.Live.Operations
             Uri url, 
             string fileName, 
             OverwriteOption option, 
-            SynchronizationContextWrapper syncContext)
-            : base(client, url, ApiMethod.Get, null, syncContext)
+            SynchronizationContextWrapper syncContext, 
+            object crid)
+            : base(client, url, ApiMethod.Get, null, syncContext, crid)
         {
             this.FileName = fileName;
             this.OverwriteOption = option;

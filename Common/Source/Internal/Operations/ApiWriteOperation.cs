@@ -34,8 +34,9 @@ namespace Microsoft.Live.Operations
             Uri url, 
             ApiMethod method, 
             string body, 
-            SynchronizationContextWrapper syncContext)
-            : base(client, url, method, body, syncContext)
+            SynchronizationContextWrapper syncContext,
+            object crid)
+            : base(client, url, method, body, syncContext, crid)
         {
         }
 
@@ -45,7 +46,7 @@ namespace Microsoft.Live.Operations
 
         protected override void OnExecute()
         {
-            if (this.PrepareRequest())
+            if (this.PrepareRequest(this.CorrelationID))
             {
                 try
                 {

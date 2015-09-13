@@ -33,13 +33,13 @@ namespace Microsoft.Live
         public void RegisterClientLog(LiveAuthClient.ClientLog cll)
         {
             m_cll = cll;
-            Log("LiveConnectSession(RegisterClientLog)");
+            Log(null, "LiveConnectSession(RegisterClientLog)");
         }
 
-        void Log(string s)
+        void Log(object crid, string s)
         {
             if (m_cll != null)
-                m_cll(s);
+                m_cll(crid, s);
         }
 
         #region Constructors
@@ -74,13 +74,13 @@ namespace Microsoft.Live
             {
                 if (string.IsNullOrEmpty(this.AccessToken))
                     {
-                    Log("IsValid == false: Access token is null");
+                    Log(null, "IsValid == false: Access token is null");
                     return false;
                     }
 
                 if (this.Expires < DateTimeOffset.UtcNow.Add(ExpirationTimeBufferInSec))
                     {
-                    Log(String.Format("IsValid == false: {0} > {1}", this.Expires,
+                    Log(null, String.Format("IsValid == false: {0} > {1}", this.Expires,
                                       DateTimeOffset.UtcNow.Add(ExpirationTimeBufferInSec)));
                     return false;
                     }

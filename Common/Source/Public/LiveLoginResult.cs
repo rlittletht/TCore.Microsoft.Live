@@ -56,6 +56,8 @@ namespace Microsoft.Live
 
         #region Properties
 
+        public object CorrelationID { get; set; }
+
         /// <summary>
         /// Gets the session object if the user is successfully connected.
         /// </summary>

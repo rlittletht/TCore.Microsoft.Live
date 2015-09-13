@@ -44,9 +44,9 @@ namespace Microsoft.Live
         /// Download a file into a stream.
         /// </summary>
         /// <param name="path">relative or absolute uri to the file to be downloaded.</param>
-        public Task<LiveDownloadOperationResult> DownloadAsync(string path)
+        public Task<LiveDownloadOperationResult> DownloadAsync(string path, object crid)
         {
-            return this.DownloadAsync(path, new CancellationToken(false), null);
+            return this.DownloadAsync(path, new CancellationToken(false), null, crid);
         }
 
         /// <summary>
@@ -58,7 +58,8 @@ namespace Microsoft.Live
         public Task<LiveDownloadOperationResult> DownloadAsync(
             string path,
             CancellationToken ct,
-            IProgress<LiveOperationProgress> progress)
+            IProgress<LiveOperationProgress> progress,
+            object crid)
         {
             LiveUtility.ValidateNotNullOrWhiteSpaceString(path, "path");
 
@@ -72,7 +73,8 @@ namespace Microsoft.Live
                 this,
                 this.GetResourceUri(path, ApiMethod.Download),
                 progress,
-                null);
+                null,
+                crid);
 
             op.OperationCompletedCallback = (LiveDownloadOperationResult result) =>
             {
@@ -110,9 +112,10 @@ namespace Microsoft.Live
             string path,
             string fileName,
             Stream inputStream,
-            OverwriteOption option)
+            OverwriteOption option,
+            object crid)
         {
-            return this.UploadAsync(path, fileName, inputStream, option, new CancellationToken(false), null);
+            return this.UploadAsync(path, fileName, inputStream, option, new CancellationToken(false), null, crid);
         }
 
         /// <summary>
@@ -133,7 +136,8 @@ namespace Microsoft.Live
             Stream inputStream,
             OverwriteOption option,
             CancellationToken ct,
-            IProgress<LiveOperationProgress> progress)
+            IProgress<LiveOperationProgress> progress,
+            object crid)
         {
             LiveUtility.ValidateNotNullOrWhiteSpaceString(path, "path");
             LiveUtility.ValidateNotNullParameter(inputStream, "inputStream");
@@ -167,7 +171,8 @@ namespace Microsoft.Live
                 inputStream,
                 option,
                 progress,
-                null);
+                null,
+                crid);
 
             op.OperationCompletedCallback = (LiveOperationResult result) =>
             {

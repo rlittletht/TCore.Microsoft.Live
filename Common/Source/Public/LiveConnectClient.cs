@@ -141,7 +141,7 @@ namespace Microsoft.Live
                    path.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
         }
 
-        private ApiOperation GetApiOperation(string path, ApiMethod method, string body)
+        private ApiOperation GetApiOperation(string path, ApiMethod method, string body, object crid)
         {
             if (path == null)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.Live
             {
                 case ApiMethod.Get:
                 case ApiMethod.Delete:
-                    operation = new ApiOperation(this, apiUri, method, null, null);
+                    operation = new ApiOperation(this, apiUri, method, null, null, crid);
                     break;
 
                 case ApiMethod.Post:
@@ -190,7 +190,7 @@ namespace Microsoft.Live
                         throw new ArgumentException("body");
                     }
 
-                    operation = new ApiWriteOperation(this, apiUri, method, body, null);
+                    operation = new ApiWriteOperation(this, apiUri, method, body, null, crid);
                     break;
 
                 default:

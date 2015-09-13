@@ -52,8 +52,9 @@ namespace Microsoft.Live.Operations
             Stream inputStream, 
             OverwriteOption option,
             object progress,
-            SynchronizationContextWrapper syncContext)
-            : base(client, url, ApiMethod.Upload, null, syncContext)
+            SynchronizationContextWrapper syncContext,
+            object crid)
+            : base(client, url, ApiMethod.Upload, null, syncContext, crid)
         {
             this.FileName = fileName;
             this.OverwriteOption = option;
@@ -86,7 +87,8 @@ namespace Microsoft.Live.Operations
                     this.Url,
                     this.FileName,
                     this.OverwriteOption,
-                    null);
+                    null,
+                    this.CorrelationID);
 
             getUploadLinkOp.OperationCompletedCallback = this.OnGetUploadLinkCompleted;
             getUploadLinkOp.Execute();
@@ -109,7 +111,7 @@ namespace Microsoft.Live.Operations
             Debug.Assert(this.Url.Query.Contains(QueryParameters.SuppressRedirects));
             Debug.Assert(this.Url.Query.Contains(QueryParameters.SuppressResponseCodes));
 
-            if (this.PrepareRequest())
+            if (this.PrepareRequest(result.CorrelationID))
             {
                 try
                 {

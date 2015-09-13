@@ -42,9 +42,9 @@ namespace Microsoft.Live
         /// </summary>
         /// <param name="path">relative path to the resource.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> GetAsync(string path)
+        public Task<LiveOperationResult> GetAsync(string path, object crid)
         {
-            return this.Api(path, ApiMethod.Get, null, new CancellationToken(false));
+            return this.Api(path, ApiMethod.Get, null, new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -53,9 +53,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the resource.</param>
         /// <param name="ct">a token that is used to cancel the get operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> GetAsync(string path, CancellationToken ct)
+        public Task<LiveOperationResult> GetAsync(string path, CancellationToken ct, object crid)
         {
-            return this.Api(path, ApiMethod.Get, null, ct);
+            return this.Api(path, ApiMethod.Get, null, ct, crid);
         }
 
         /// <summary>
@@ -63,9 +63,9 @@ namespace Microsoft.Live
         /// </summary>
         /// <param name="path">relative path to the resource being deleted.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> DeleteAsync(string path)
+        public Task<LiveOperationResult> DeleteAsync(string path, object crid)
         {
-            return this.Api(path, ApiMethod.Delete, null, new CancellationToken(false));
+            return this.Api(path, ApiMethod.Delete, null, new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -74,9 +74,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the resource being deleted.</param>
         /// <param name="ct">a token that is used to cancel the delete operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> DeleteAsync(string path, CancellationToken ct)
+        public Task<LiveOperationResult> DeleteAsync(string path, CancellationToken ct, object crid)
         {
-            return this.Api(path, ApiMethod.Delete, null, ct);
+            return this.Api(path, ApiMethod.Delete, null, ct, crid);
         }
 
         /// <summary>
@@ -85,9 +85,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the resource collection to which the new object should be added.</param>
         /// <param name="body">properties of the new resource in json.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PostAsync(string path, string body)
+        public Task<LiveOperationResult> PostAsync(string path, string body, object crid)
         {
-            return this.Api(path, ApiMethod.Post, body, new CancellationToken(false));
+            return this.Api(path, ApiMethod.Post, body, new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -96,9 +96,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the resource collection to which the new object should be added.</param>
         /// <param name="body">properties of the new resource in name-value pairs.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PostAsync(string path, IDictionary<string, object> body)
+        public Task<LiveOperationResult> PostAsync(string path, IDictionary<string, object> body, object crid)
         {
-            return this.Api(path, ApiMethod.Post, ApiOperation.SerializePostBody(body), new CancellationToken(false));
+            return this.Api(path, ApiMethod.Post, ApiOperation.SerializePostBody(body), new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -108,9 +108,9 @@ namespace Microsoft.Live
         /// <param name="body">properties of the new resource in json.</param>
         /// <param name="ct">a token that is used to cancel the post operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PostAsync(string path, string body, CancellationToken ct)
+        public Task<LiveOperationResult> PostAsync(string path, string body, CancellationToken ct, object crid)
         {
-            return this.Api(path, ApiMethod.Post, body, ct);
+            return this.Api(path, ApiMethod.Post, body, ct, crid);
         }
 
         /// <summary>
@@ -120,9 +120,9 @@ namespace Microsoft.Live
         /// <param name="body">properties of the new resource in name-value pairs.</param>
         /// <param name="ct">a token that is used to cancel the post operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PostAsync(string path, IDictionary<string, object> body, CancellationToken ct)
+        public Task<LiveOperationResult> PostAsync(string path, IDictionary<string, object> body, CancellationToken ct, object crid)
         {
-            return this.Api(path, ApiMethod.Post, ApiOperation.SerializePostBody(body), ct);
+            return this.Api(path, ApiMethod.Post, ApiOperation.SerializePostBody(body), ct, crid);
         }
 
         /// <summary>
@@ -131,9 +131,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the resource to be updated.</param>
         /// <param name="body">properties of the updated resource in json.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PutAsync(string path, string body)
+        public Task<LiveOperationResult> PutAsync(string path, string body, object crid)
         {
-            return this.Api(path, ApiMethod.Put, body, new CancellationToken(false));
+            return this.Api(path, ApiMethod.Put, body, new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -142,9 +142,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the resource to be updated.</param>
         /// <param name="body">properties of the updated resource in name-value pairs.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PutAsync(string path, IDictionary<string, object> body)
+        public Task<LiveOperationResult> PutAsync(string path, IDictionary<string, object> body, object crid)
         {
-            return this.Api(path, ApiMethod.Put, ApiOperation.SerializePostBody(body), new CancellationToken(false));
+            return this.Api(path, ApiMethod.Put, ApiOperation.SerializePostBody(body), new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -154,9 +154,9 @@ namespace Microsoft.Live
         /// <param name="body">properties of the updated resource in json.</param>
         /// <param name="ct">a token that is used to cancel the put operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PutAsync(string path, string body, CancellationToken ct)
+        public Task<LiveOperationResult> PutAsync(string path, string body, CancellationToken ct, object crid)
         {
-            return this.Api(path, ApiMethod.Put, body, ct);
+            return this.Api(path, ApiMethod.Put, body, ct, crid);
         }
 
         /// <summary>
@@ -166,9 +166,9 @@ namespace Microsoft.Live
         /// <param name="body">properties of the updated resource in json.</param>
         /// <param name="ct">a token that is used to cancel the put operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> PutAsync(string path, IDictionary<string, object> body, CancellationToken ct)
+        public Task<LiveOperationResult> PutAsync(string path, IDictionary<string, object> body, CancellationToken ct, object crid)
         {
-            return this.Api(path, ApiMethod.Put, ApiOperation.SerializePostBody(body), ct);
+            return this.Api(path, ApiMethod.Put, ApiOperation.SerializePostBody(body), ct, crid);
         }
 
         /// <summary>
@@ -177,9 +177,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the file resource to be moved.</param>
         /// <param name="destination">relative path to the folder resource where the file should be moved to.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> MoveAsync(string path, string destination)
+        public Task<LiveOperationResult> MoveAsync(string path, string destination, object crid)
         {
-            return this.MoveOrCopy(path, destination, ApiMethod.Move, new CancellationToken(false));
+            return this.MoveOrCopy(path, destination, ApiMethod.Move, new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -189,9 +189,9 @@ namespace Microsoft.Live
         /// <param name="destination">relative path to the folder resource where the file should be moved to.</param>
         /// <param name="ct">a token that is used to cancel the move operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> MoveAsync(string path, string destination, CancellationToken ct)
+        public Task<LiveOperationResult> MoveAsync(string path, string destination, CancellationToken ct, object crid)
         {
-            return this.MoveOrCopy(path, destination, ApiMethod.Move, ct);
+            return this.MoveOrCopy(path, destination, ApiMethod.Move, ct, crid);
         }
 
         /// <summary>
@@ -200,9 +200,9 @@ namespace Microsoft.Live
         /// <param name="path">relative path to the file resource to be copied.</param>
         /// <param name="destination">relative path to the folder resource where the file should be copied to.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> CopyAsync(string path, string destination)
+        public Task<LiveOperationResult> CopyAsync(string path, string destination, object crid)
         {
-            return this.MoveOrCopy(path, destination, ApiMethod.Copy, new CancellationToken(false));
+            return this.MoveOrCopy(path, destination, ApiMethod.Copy, new CancellationToken(false), crid);
         }
 
         /// <summary>
@@ -212,16 +212,16 @@ namespace Microsoft.Live
         /// <param name="destination">relative path to the folder resource where the file should be copied to.</param>
         /// <param name="ct">a token that is used to cancel the copy operation.</param>
         /// <returns>A Task object representing the asynchronous operation.</returns>
-        public Task<LiveOperationResult> CopyAsync(string path, string destination, CancellationToken ct)
+        public Task<LiveOperationResult> CopyAsync(string path, string destination, CancellationToken ct, object crid)
         {
-            return this.MoveOrCopy(path, destination, ApiMethod.Copy, ct);
+            return this.MoveOrCopy(path, destination, ApiMethod.Copy, ct, crid);
         }
 
         #endregion
 
         #region Private methods
 
-        private Task<LiveOperationResult> MoveOrCopy(string path, string destination, ApiMethod method, CancellationToken ct)
+        private Task<LiveOperationResult> MoveOrCopy(string path, string destination, ApiMethod method, CancellationToken ct, object crid)
         {
             if (destination == null)
             {
@@ -235,16 +235,16 @@ namespace Microsoft.Live
 
             string body = string.Format(CultureInfo.InvariantCulture, ApiOperation.MoveRequestBodyTemplate, destination);
 
-            return this.Api(path, method, body, ct);
+            return this.Api(path, method, body, ct, crid);
         }
 
-        private Task<LiveOperationResult> Api(string path, ApiMethod method, string body, CancellationToken ct)
+        private Task<LiveOperationResult> Api(string path, ApiMethod method, string body, CancellationToken ct, object crid)
         {
-            ApiOperation op = this.GetApiOperation(path, method, body);
-            return this.ExecuteApiOperation(op, ct);
+            ApiOperation op = this.GetApiOperation(path, method, body, crid);
+            return this.ExecuteApiOperation(op, ct, crid);
         }
 
-        private Task<LiveOperationResult> ExecuteApiOperation(ApiOperation op, CancellationToken ct)
+        private Task<LiveOperationResult> ExecuteApiOperation(ApiOperation op, CancellationToken ct, object crid)
         {
             if (this.Session == null)
             {

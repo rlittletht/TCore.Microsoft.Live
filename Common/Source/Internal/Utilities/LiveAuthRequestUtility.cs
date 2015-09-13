@@ -43,14 +43,14 @@ namespace Microsoft.Live
         /// <summary>
         /// An async method to exhange authorization code for auth tokens with the auth server.
         /// </summary>
-        public static Task<LiveLoginResult> ExchangeCodeForTokenAsync(string clientId, string clientSecret, string redirectUrl, string authorizationCode)
+        public static Task<LiveLoginResult> ExchangeCodeForTokenAsync(string clientId, string clientSecret, string redirectUrl, string authorizationCode, object crid)
         {
             Debug.Assert(!string.IsNullOrEmpty(clientId));
             Debug.Assert(!string.IsNullOrEmpty(redirectUrl));
             Debug.Assert(!string.IsNullOrEmpty(authorizationCode));
 
             string postContent = LiveAuthUtility.BuildCodeTokenExchangePostContent(clientId, clientSecret, redirectUrl, authorizationCode);
-            return RequestAccessTokenAsync(postContent);
+            return RequestAccessTokenAsync(postContent, crid);
         }
 
         /// <summary>
@@ -58,29 +58,29 @@ namespace Microsoft.Live
         /// </summary>
         public static Task<LiveLoginResult> RefreshTokenAsync(
             string clientId, string clientSecret, string redirectUrl, string refreshToken,
-            IEnumerable<string> scopes, LiveAuthClient.ClientLog cll)
+            IEnumerable<string> scopes, LiveAuthClient.ClientLog cll, object crid)
         {
             Debug.Assert(!string.IsNullOrEmpty(clientId));
             Debug.Assert(!string.IsNullOrEmpty(redirectUrl));
             Debug.Assert(!string.IsNullOrEmpty(refreshToken));
 
             if (cll != null)
-                cll("RefreshTokenAsync ENTER");
+                cll(crid, "RefreshTokenAsync ENTER");
             string postContent = LiveAuthUtility.BuildRefreshTokenPostContent(clientId, clientSecret, redirectUrl, refreshToken, scopes);
-            return RequestAccessTokenAsync(postContent);
+            return RequestAccessTokenAsync(postContent, crid);
         }
 
-        private static Task<LiveLoginResult> RequestAccessTokenAsync(string postContent)
+        private static Task<LiveLoginResult> RequestAccessTokenAsync(string postContent, object crid)
         {
             Task<LiveLoginResult> task = Task.Factory.StartNew(() =>
             {
-                return RequestAccessToken(postContent);
+                return RequestAccessToken(postContent, crid);
             });
 
             return task;
         }
 
-        private static LiveLoginResult RequestAccessToken(string postContent)
+        private static LiveLoginResult RequestAccessToken(string postContent, object crid)
         {
             string url = LiveAuthUtility.BuildTokenUrl();
             HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
@@ -98,15 +98,18 @@ namespace Microsoft.Live
 
                 response = request.GetResponse() as HttpWebResponse;
                 loginResult = ReadResponse(response);
+                loginResult.CorrelationID = crid;
             }
             catch (WebException e)
             {
                 response = e.Response as HttpWebResponse;
                 loginResult = ReadResponse(response);
+                loginResult.CorrelationID = crid;
             }
             catch (IOException ioe)
             {
                 loginResult = new LiveLoginResult(new LiveAuthException(AuthErrorCodes.ClientError, ioe.Message));
+                loginResult.CorrelationID = crid;
             }
             finally
             {
@@ -119,6 +122,7 @@ namespace Microsoft.Live
             if (loginResult == null)
             {
                 loginResult = new LiveLoginResult(new LiveAuthException(AuthErrorCodes.ClientError, ErrorText.RetrieveTokenError));
+                loginResult.CorrelationID = crid;
             }
 
             return loginResult;

@@ -52,13 +52,13 @@ namespace Microsoft.Live
         public void RegisterClientLog(LiveAuthClient.ClientLog cll)
         {
             m_cll = cll;
-            Log("LiveAuthClientCore(RegisterClientLog)");
+            Log(null, "LiveAuthClientCore(RegisterClientLog)");
         }
 
-        void Log(string s)
+        void Log(object crid, string s)
         {
             if (m_cll != null)
-                m_cll(s);
+                m_cll(crid, s);
         }
 
         /// <summary>
@@ -81,12 +81,12 @@ namespace Microsoft.Live
         /// Initializes the LiveAuthClient instance by trying to retrieve an access token using refresh token
         /// provided by the app via the IRefreshTokenHandler instance.
         /// </summary>
-        public Task<LiveLoginResult> InitializeAsync(IEnumerable<string> scopes)
+        public Task<LiveLoginResult> InitializeAsync(IEnumerable<string> scopes, object crid)
         {
             // We don't allow InitializeAsync or ExchangeAuthCodeAsync to be invoked concurrently.
             if (this.initTask != null)
                 {
-                Log("concurrent calls to InitializeAsync and ExchangeAuthCodeAsync");
+                Log(crid, "concurrent calls to InitializeAsync and ExchangeAuthCodeAsync");
                 throw new InvalidOperationException(ErrorText.ExistingAuthTaskRunning);
             }
 
@@ -96,14 +96,16 @@ namespace Microsoft.Live
 
             if (this.loginStatus != null)
                 {
-                Log("Already have loginStatus; calling OnInitCompleted");
+                Log(this.loginStatus.CorrelationID, "Already have loginStatus; calling OnInitCompleted. This is a PAIRED LOG. PART 1: Existing CorrelationID");
+                Log(crid, "Already have loginStatus; calling OnInitCompleted. This is a PAIRED LOG. PART 2: New CorrelationID");
                 // We have a result already, then return this one.
                 this.OnInitCompleted(null);
             }
             else
             {
                 this.loginStatus = new LiveLoginResult(LiveConnectSessionStatus.Unknown, null);
-                this.TryRefreshToken();
+                this.loginStatus.CorrelationID = crid;
+                this.TryRefreshToken(crid);
             }
 
             return task.Task;
@@ -114,7 +116,7 @@ namespace Microsoft.Live
         /// </summary>
         /// <param name="AuthenticationCode">The authentication code the app received from Microsoft authorization server during user authentication and authorization process.</param>
         /// <returns></returns>
-        public Task<LiveConnectSession> ExchangeAuthCodeAsync(string authenticationCode)
+        public Task<LiveConnectSession> ExchangeAuthCodeAsync(string authenticationCode, object crid)
         {
             Debug.Assert(!string.IsNullOrEmpty(authenticationCode));
 
@@ -126,7 +128,7 @@ namespace Microsoft.Live
 
             this.codeExchangeTask = new TaskCompletionSource<LiveConnectSession>();
 
-            this.ExchangeCodeForToken(authenticationCode);
+            this.ExchangeCodeForToken(authenticationCode, crid);
 
             return this.codeExchangeTask.Task;
         }
@@ -147,52 +149,55 @@ namespace Microsoft.Live
             }
         }
 
-        internal void TryRefreshToken()
+        internal void TryRefreshToken(object crid)
         {
-            this.TryRefreshToken(null);
+            this.TryRefreshToken(null, crid);
         }
 
 
-        internal void TryRefreshToken(Action<LiveLoginResult> completionCallback)
+        internal void TryRefreshToken(Action<LiveLoginResult> completionCallback, object crid)
         {
-            Log("Entering TryRefreshToken");
+            Log(crid, "Entering TryRefreshToken");
 
             LiveLoginResult result = new LiveLoginResult(LiveConnectSessionStatus.Unknown, null);
+            result.CorrelationID = crid;
+
             if (this.refreshTokenHandler != null)
             {
                 if (this.refreshTokenInfo == null)
                     {
-                    Log("Need to retrieve refresh token");
+                    Log(crid, "Need to retrieve refresh token");
                     this.refreshTokenHandler.RetrieveRefreshTokenAsync().ContinueWith(t =>
                     {
                         this.refreshTokenInfo = t.Result;
-                        this.RefreshToken(completionCallback);
+                        this.RefreshToken(completionCallback, crid);
 
                     });
                     return;
                 }
 
-                this.RefreshToken(completionCallback);
+                this.RefreshToken(completionCallback, crid);
                 return;
             }
 
             this.OnRefreshTokenCompleted(result, completionCallback);
         }
 
-        private void RefreshToken(Action<LiveLoginResult> completionCallback)
+        private void RefreshToken(Action<LiveLoginResult> completionCallback, object crid)
         {
-            Log("RefreshToken ENTER");
+            Log(crid, "RefreshToken ENTER");
 
             if (this.refreshTokenInfo != null)
                 {
-                Log("Calling RefreshTokenAsync");
+                Log(crid, "Calling RefreshTokenAsync");
                 LiveAuthRequestUtility.RefreshTokenAsync(
                         this.clientId,
                         null,
                         LiveAuthUtility.BuildDesktopRedirectUrl(),
                         this.refreshTokenInfo.RefreshToken,
                         null /*scopes*/,
-                        m_cll
+                        m_cll,
+                        crid
                     ).ContinueWith(t =>
                     {
                         this.OnRefreshTokenCompleted(t.Result, completionCallback);
@@ -201,22 +206,24 @@ namespace Microsoft.Live
             else
             {
                 LiveLoginResult result = new LiveLoginResult(LiveConnectSessionStatus.Unknown, null);
+                result.CorrelationID = crid;
                 this.OnRefreshTokenCompleted(result, completionCallback);
             }
         }
 
         private void OnRefreshTokenCompleted(LiveLoginResult result, Action<LiveLoginResult> completionCallback)
         {
-            Log("OnRefreshTokenCompleted ENTER");
+            Log(result?.CorrelationID, "OnRefreshTokenCompleted ENTER");
             if (completionCallback != null)
             {
-                Log("About to UpdateSession");
+                Log(result?.CorrelationID, "About to UpdateSession");
                 this.UpdateSession(result);
-                Log("About to call completionCallback");
+                Log(result?.CorrelationID, "About to call completionCallback");
                 completionCallback(result);
             }
             else
-            {
+                {
+                Log(result?.CorrelationID, "completionCallback == null");
                 this.OnInitCompleted(result);
             }
         }
@@ -250,19 +257,24 @@ namespace Microsoft.Live
 
         private void OnInitCompleted(LiveLoginResult authResult)
         {
+            Log(authResult?.CorrelationID, "OnInitCompleted");
             authResult = this.ValidateSessionInitScopes(authResult);
+            Log(authResult?.CorrelationID, "Calling updatesession");
             this.UpdateSession(authResult);
 
             Debug.Assert(this.loginStatus != null);
+            Log(authResult?.CorrelationID, "Firing Pending PropertyChanged events");
             this.publicAuthClient.FirePendingPropertyChangedEvents();
             
 
             if (authResult != null && authResult.Error != null)
             {
+                Log(authResult?.CorrelationID, String.Format("error: {0}", authResult.Error.Message));
                 this.initTask.SetException(authResult.Error);
             }
             else
             {
+                Log(authResult?.CorrelationID, "Setting result for loginstatus");
                 this.initTask.SetResult(this.loginStatus);
             }
 
@@ -284,15 +296,17 @@ namespace Microsoft.Live
             return loginResult;
         }
 
-        private void ExchangeCodeForToken(string authorizationCode)
+        private void ExchangeCodeForToken(string authorizationCode, object crid)
         {
             Task<LiveLoginResult> task = LiveAuthRequestUtility.ExchangeCodeForTokenAsync(
                 this.clientId, 
                 null, 
                 LiveAuthUtility.BuildDesktopRedirectUrl(), 
-                authorizationCode);
+                authorizationCode,
+                crid);
             task.ContinueWith((Task<LiveLoginResult> t) =>
-            {
+                {
+                t.Result.CorrelationID = crid;
                 this.OnExchangeCodeCompleted(t.Result);
             });
         }

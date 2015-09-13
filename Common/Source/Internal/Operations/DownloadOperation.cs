@@ -51,8 +51,9 @@ namespace Microsoft.Live.Operations
             LiveConnectClient client, 
             Uri url, 
             object progress, 
-            SynchronizationContextWrapper syncContext)
-            : base(client, url, ApiMethod.Download, null, syncContext)
+            SynchronizationContextWrapper syncContext,
+            object crid)
+            : base(client, url, ApiMethod.Download, null, syncContext, crid)
         {
             this.progress = progress;
         }
@@ -85,7 +86,7 @@ namespace Microsoft.Live.Operations
         {
             if (this.Url.OriginalString.StartsWith(this.LiveClient.ApiEndpoint, StringComparison.OrdinalIgnoreCase))
             {
-                if (!this.PrepareRequest())
+                if (!this.PrepareRequest(this.CorrelationID))
                 {
                     return;
                 }

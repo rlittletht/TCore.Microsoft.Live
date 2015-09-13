@@ -20,6 +20,8 @@
 //  THE SOFTWARE.
 // ------------------------------------------------------------------------------
 
+using TCore.Logging;
+
 namespace Microsoft.Live
 {
     using System;
@@ -62,6 +64,7 @@ namespace Microsoft.Live
 
         #region Properties
 
+        public object CorrelationID { get; set; }
         /// <summary>
         /// Gets the JSON result in dictionary format.
         /// </summary>
