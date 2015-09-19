@@ -41,7 +41,7 @@ namespace Microsoft.Live
         private LiveConnectSession session;
         private bool sessionChanged;
         private SynchronizationContextWrapper syncContext;
-        public delegate void ClientLog(object crid, string s);
+        public delegate void ClientLog(object crid, string s, params object[] rgo);
 
         private ClientLog m_cll;
 
