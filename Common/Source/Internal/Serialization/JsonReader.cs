@@ -32,7 +32,7 @@ namespace Microsoft.Live.Serialization
     /// <summary>
     ///     Responsible for deserializing from JSON.
     /// </summary>
-    internal sealed class JsonReader : IDisposable
+    public sealed class JsonReader : IDisposable
     {
         /// <summary>
         ///     The max depth a JSON object originating from the user can be.

@@ -31,7 +31,7 @@ namespace Microsoft.Live.Serialization
     /// <summary>
     ///     Represents a text writer that supports indentation.
     /// </summary>
-    internal sealed class IndentedTextWriter : TextWriter
+    public sealed class IndentedTextWriter : TextWriter
     {
         /// <summary>
         ///     The underlying text writer.

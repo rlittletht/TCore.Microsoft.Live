@@ -25,7 +25,7 @@ namespace Microsoft.Live
     using System;
     using System.Collections.Generic;
 
-    internal static class QueryParameters
+    public static class QueryParameters
     {
         #region Fields
 

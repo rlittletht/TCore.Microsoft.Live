@@ -27,7 +27,7 @@ namespace Microsoft.Live
     using System.Collections.Generic;
     using System.Dynamic;
 
-    internal sealed class DynamicDictionary : DynamicObject, IDictionary<string, object>
+    public sealed class DynamicDictionary : DynamicObject, IDictionary<string, object>
     {
         private readonly IDictionary<string, object> impl;
 

@@ -34,7 +34,7 @@ namespace Microsoft.Live.Serialization
     /// <summary>
     ///     Responsible for serializing to JSON.
     /// </summary>
-    internal class JsonWriter
+    public class JsonWriter
     {
         /// <summary>
         ///     The JSON escapes of the first 256 characters for quick lookup.

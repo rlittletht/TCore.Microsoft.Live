@@ -25,7 +25,7 @@ namespace Microsoft.Live
     using System.Diagnostics;
     using System.Text;
 
-    internal static class StringBuilderExtension
+    public static class StringBuilderExtension
     {
         private const char ForwardSlash = '/';
 

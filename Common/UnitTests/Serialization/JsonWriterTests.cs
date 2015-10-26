@@ -389,7 +389,6 @@ namespace Microsoft.Live.Serialization.UnitTests
 
             Assert.AreEqual(test.ToJson(), sb.ToString());
         }
-
         [TestMethod]
         public void WriteValueIDictionaryEmpty()
         {
